@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "experimentalDecorators": true,
     "outDir": "./lib",
     "rootDir": "./src",
     "baseUrl": ".",
@@ -12,7 +13,7 @@
     ],
     "paths": {
       "@/*": ["src/*"]
-    },
+    }
   },
   "include": ["./src/"]
 }

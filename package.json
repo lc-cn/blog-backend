@@ -26,6 +26,7 @@
   },
   "homepage": "https://github.com/lc-cn/ts-dev-template#readme",
   "devDependencies": {
+    "@types/koa": "^2.13.5",
     "@types/node": "latest",
     "ts-node-dev": "latest",
     "tsc-alias": "latest",
@@ -37,5 +38,11 @@
     "/lib/**/*.d.ts",
     "/lib/**/LICENSE"
   ],
-  "dependencies": {}
+  "dependencies": {
+    "crypto": "^1.0.1",
+    "dotenv": "^16.0.3",
+    "jsonwebtoken": "^8.5.1",
+    "koa-jwt": "^4.0.3",
+    "koa-msc": "^1.1.21"
+  }
 }
