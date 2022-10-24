@@ -1,4 +1,4 @@
-import {BelongsToMany, Column, HasMany, Model, Table} from "koa-msc";
+import {BelongsTo, BelongsToMany, Column, HasMany, Model, Table} from "koa-msc";
 import {DataTypes} from 'sequelize'
 import * as crypto from "crypto";
 import {Tag} from "@/models/Tag";
@@ -11,8 +11,11 @@ import {Role} from "@/models/Role";
 @HasMany(()=>Article)
 @HasMany(()=>Category)
 @HasMany(()=>Comment)
-@BelongsToMany(()=>Role,{through:'userRole'})
+@BelongsTo(()=>User,{as:'creator'})
+@HasMany(()=>User)
+@BelongsToMany(()=>Role,{through:'userRole',as:'roles'})
 export class User extends Model{
+    id:number
     @Column(DataTypes.TEXT)
     name:string
     @Column(DataTypes.INTEGER)

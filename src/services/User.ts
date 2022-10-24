@@ -8,13 +8,33 @@ export class UserService{
     public models:Record<string, ModelStatic<Model>>
     getUserList(condition){
         return this.model.findAll({
-            attributes:['name','age','email'],
+            attributes:['id','name','age','email'],
             where:condition
         })
     }
-    getInfo({name}){
+    getInfo(condition:{id?:number,name?:string}){
         return this.model.findOne({
-            where:{name}
+            attributes:['id','name','age','email'],
+            where:condition,
+            include:[
+                {
+                    model:this.models.role,
+                    as:'roles',
+                    through:{
+                        attributes:[]
+                    }
+                },{
+                    model:this.model,
+                    as:'creator',
+                    attributes:['id','name','age','email']
+                }
+            ]
+        })
+    }
+    getInfoWithPwd(condition:{id?:number,name?:string}){
+        return this.model.findOne({
+            attributes:['id','name','age','email','password'],
+            where:condition
         })
     }
     add(userInfo:User){

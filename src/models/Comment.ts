@@ -4,10 +4,11 @@ import {DataTypes} from "sequelize";
 import {User} from "@/models/User";
 @Table
 @BelongsTo(()=>Article)
-@BelongsTo(()=>User)
+@BelongsTo(()=>User,{as:'creator'})
 @BelongsTo(()=>Comment,{foreignKey:'pId'})
-@HasMany(()=>Comment)
+@HasMany(()=>Comment,{as:'children'})
 export class Comment extends Model{
+    id:number
     @Column(DataTypes.TEXT)
     content:string
 }

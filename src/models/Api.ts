@@ -4,6 +4,7 @@ import {Role} from "@/models/Role";
 @Table
 @BelongsToMany(()=>Role,{through:'rolePermission'})
 export class Api extends Model{
+    id:number
     @Column(DataTypes.TEXT)
     url:string
     @Column({
