@@ -1,8 +1,8 @@
 import {App} from "koa-msc";
 import {resolve} from 'path'
 import {config} from "dotenv";
-import * as jwt from "koa-jwt";
-import {AppErr, error} from "@/utils";
+import {auth, errorHandler, checkPermission} from "@/middlewares";
+
 const {parsed:env}=config({path:'.env'})
 const app=new App({
     log_level:'info',
@@ -23,31 +23,24 @@ const app=new App({
     }
 })
 app.envConfig=env
-app.use((ctx,next)=>{
-    return next().catch(e=>{
-        if(e.status===401){
-            ctx.status=401
-            ctx.body=error('请登录',401)
-        }else if(e instanceof AppErr){
-            ctx.body=error(e.message,e.code)
-        }else if(e.fields){
-            ctx.body={
-                code:1,
-                fields:e['fields'],
-                message:e.message,
-                stack:e.stack.replace(new RegExp(process.cwd(),'g'),'').split('\n').map(str=>str.trim())
+app.on('ready',async ()=>{
+    for(const api of app.apis){
+        const [model]=await app.model('api').findOrCreate({
+            where:{
+                url:api.path,
+            },
+            defaults:{
+                methods:api.methods,
+                rules:api.rules
             }
-        }else{
-            throw e
-        }
-    })
+        })
+        await model.update({
+            rules:api.rules,
+            methods:api.methods
+        })
+    }
 })
-    .use(jwt({secret:env.AUTHSECRET})
-        .unless({
-        path:[
-            '/api/user/login',
-            '/api/user/register',
-            /!^\/api\/.*/
-        ]
-        }))
+app.use(errorHandler)
+    .use(auth(app))
+    .use(checkPermission(app))
 app.start(8080)

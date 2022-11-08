@@ -25,5 +25,17 @@ export class RoleController{
         roleInfo['creatorId']=ctx.state.user.id
         return await this.service.add(roleInfo)
     }
+    @RequestMapping('/bind',Request.post)
+    @Param('id',{type:"number"})
+    @Param('userIds',{type:"array",defaultField:{type:"number"}})
+    @Param('apiIds',{type:"array",defaultField:{type:"number"}})
+    async bindUser({id,userIds=[],apiIds=[]},ctx){
+        const role=await this.service.getInfo({id})
+        const apis=await this.services.api.getApiList({id:apiIds})
+        const users=await this.services.user.getUserList({id:userIds})
+        await role['setApis'](apis)
+        await role['setUsers'](users)
+        return '绑定成功'
+    }
 
 }
