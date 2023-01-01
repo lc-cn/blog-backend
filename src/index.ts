@@ -31,12 +31,14 @@ app.on('ready',async ()=>{
             },
             defaults:{
                 methods:api.methods,
-                rules:api.rules
+                query:api.query,
+                body:api.body
             }
         })
         await model.update({
-            rules:api.rules,
-            methods:api.methods
+            methods:api.methods,
+            query:api.query,
+            body:api.body
         })
     }
 })

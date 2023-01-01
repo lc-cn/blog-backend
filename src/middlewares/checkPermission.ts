@@ -19,14 +19,6 @@ export const checkPermission=(app:App)=>{
             attributes:['id'],
             include:[
                 {
-                    model:app.model('api'),
-                    attributes:['id','methods','url'],
-                    as:'permissions',
-                    through:{
-                        attributes:['apiId','roleId']
-                    }
-                },
-                {
                     model:app.model('user'),
                     attributes:['id'],
                     as:'users',
@@ -36,13 +28,29 @@ export const checkPermission=(app:App)=>{
                     where:{
                         id:ctx.state.user.id
                     }
-                }
+                },
+
+                {
+                    model:app.model('route'),
+                    attributes:['id'],
+                    as:'routes',
+                    include:[
+                        {
+                            model:app.model('api'),
+                            attributes:['id','methods','url'],
+                            as:'apis',
+                            through:{
+                                attributes:['apiId','routeId']
+                            }
+                        },
+                    ]
+                },
             ]
         })
-        const apis=roleModels.map(role=>role.toJSON().permissions).flat()
+        const apis=roleModels.map(role=>role.toJSON().routes.map(route=>route.apis)).flat(Infinity)
         if(!apis.find(api=>{
             return ctx.url.startsWith(`/api/${api.url}`) && api.methods.includes(ctx.method.toUpperCase())
-        })) throw new AppErr('权限不足',401)
+        })) throw new AppErr('权限不足',403)
         await next()
     }
     return middleware

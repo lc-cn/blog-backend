@@ -1,4 +1,4 @@
-import {App, Controller, pagination, Params,Param, Request, RequestMapping,} from "koa-msc";
+import {Controller, Param, Request, RequestMapping, BaseController, Body,} from "koa-msc";
 import * as crypto from "crypto";
 import {config} from "dotenv";
 import {UserService} from "@/services/User";
@@ -8,19 +8,19 @@ import {User} from "@/models/User";
 
 const {parsed:env}=config({path:'.env'})
 @Controller('/user')
-export class UserController{
-    constructor(public app:App,public service:UserService,public services) {
-    }
+export class UserController extends BaseController<UserService>{
     @RequestMapping('/list',[Request.get,Request.post])
+    @Param('pageSize',{type:"number"})
+    @Param('pageNum',{type:'number'})
     async getUserList(condition){
-        return pagination(await this.service.getUserList(condition),1,10)
+        return success(await this.service.pagination(condition,1,10))
     }
     @RequestMapping('/login',Request.post)
-    @Params({
+    @Body({
         name:{type:"string",required:true},
         password:{type:"string",required:true}
     })
-    async login({name,password}){
+    async login(_,{name,password}){
         const user=await this.service.getInfoWithPwd({name})
         if(!user) throw new AppErr('用户不存在',406)
         const userInfo=user.toJSON()
@@ -29,46 +29,59 @@ export class UserController{
             throw new AppErr('密码错误',406)
         }
         const token= jwt.sign({id:userInfo.id,name:userInfo.name},env.AUTHSECRET,{ expiresIn: 60 * 60 })
-        return success(token)
+        return success(token,'登录成功')
     }
     @RequestMapping('/info',Request.get)
     @Param('id',{type:"string"})
-    async info({id},ctx){
-        if(!id) return this.service.getInfo({name:ctx.state.user.name})
-        return this.service.getInfo({id:Number(id)})
+    async info({id},_,ctx){
+        if(!id) return this.service.info({name:ctx.state.user.name})
+        return success(this.service.info({id:Number(id)}))
     }
     @RequestMapping('/bindRole',Request.post)
-    @Param('ids',{type:"array",defaultField:{type:"number"}})
-    async bindRole({ids},ctx){
-        const user=await this.service.getInfo({name:ctx.state.user.name})
-        const roles=await this.services.role.getRoleList({id:ids})
+    @Param('id',{type:"string"})
+    @Body({
+        'ids':{type:"array",defaultField:{type:"number"}}
+    })
+    async bindRole({id},{ids},ctx){
+        const user=this.info({id},{},ctx)
+        const roles=await this.services.role.list({id:ids})
         await user['setRoles'](roles)
-        return '绑定成功'
+        return success(true,'绑定成功')
     }
     @RequestMapping('/register',Request.post)
-    @Params({
+    @Body({
         name:{type:"string",required:true},
         age:{type:'number',min:18,max:120},
         email:{type:'email'},
         password:{type:"string",min:8,required:true}
     })
-    async register(userInfo:User){
-        if(await this.service.getInfo({name:userInfo.name})){
+    async register(_,userInfo:User){
+        if(await this.service.info({name:userInfo.name})){
             throw new AppErr('用户已存在',406)
         }
         const user=await this.service.add(userInfo)
-        return success(user.toJSON())
+        return success(user.toJSON(),'注册成功')
     }
     @RequestMapping('/add',Request.post)
-    @Params({
+    @Body({
         name:{type:"string",required:true},
         age:{type:'number',min:18,max:120},
         email:{type:'email'},
         password:{type:"string",min:8,required:true}
     })
-    async add(userInfo:User,ctx){
+    async add(_,userInfo:User,ctx){
         userInfo['creatorId']=ctx.state.user.id
-        return await this.register(userInfo)
+        if(await this.service.info({name:userInfo.name})){
+            throw new AppErr('用户已存在',406)
+        }
+        const user=await this.service.add(userInfo)
+        return success(user.toJSON(),'添加用户成功')
+    }
+    @RequestMapping('/delete',Request.delete)
+    @Param('id',{required:true})
+    async delete(condition:Pick<User, 'id'>){
+        await this.service.delete(condition)
+        return success(true,'删除用户成功')
     }
 
 }
