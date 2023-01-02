@@ -14,7 +14,7 @@ export class TagController extends BaseController<TagService>{
         return success(await this.service.pagination(condition,pagination.pageNum,pagination.pageSize))
     }
     @RequestMapping('/info',Request.get)
-    @Param('id',{type:"string",required:true})
+    @Param('id',{type: "string", required: true,pattern:/^\d+$/})
     async info({id}){
         return success(await this.service.info({id:Number(id)}))
     }
@@ -28,16 +28,16 @@ export class TagController extends BaseController<TagService>{
         return success(true,'添加标签成功')
     }
     @RequestMapping('/update',Request.put)
-    @Param('id',{required:true})
+    @Param('id',{type: "string", required: true,pattern:/^\d+$/})
     @Body({
         name:{type:"string",required:true}
     })
-    async update(condition:Pick<Tag, 'id'>,roleInfo:Partial<Omit<Tag, 'id'>>){
-        await this.service.update(condition,roleInfo)
+    async update(condition:Pick<Tag, 'id'>,tagInfo:Partial<Omit<Tag, 'id'>>){
+        await this.service.update(condition,tagInfo)
         return success(true,'修改标签成功')
     }
     @RequestMapping('/delete',Request.delete)
-    @Param('id',{required:true})
+    @Param('id',{type: "string", required: true,pattern:/^\d+$/})
     async delete(condition:Pick<Tag, 'id'>){
         await this.service.delete(condition)
         return success(true,'删除标签成功')

@@ -3,23 +3,35 @@ import {Rules} from 'async-validator'
 import {DataTypes} from "sequelize";
 import {Menu} from "@/models/Menu";
 @Model
-@BelongsToMany(()=>Menu,{through:'routePermissions',as:'routes'})
+@BelongsToMany(()=>Menu,{through:'menuApis',as:'menus'})
 export class Api extends BaseModel{
     id:number
     @Column(DataTypes.TEXT)
     @Comment('请求地址')
     url:string
     @Column(DataTypes.TEXT)
+    @Comment('所属分组')
+    group:string
+    @Column(DataTypes.TEXT)
     @Comment('接口描述')
     desc:string
-    @Column(DataTypes.TEXT)
-    @Comment('标签')
-    tag:string
     @Column({
         type:DataTypes.TEXT,
-        defaultValue:'null',
+        defaultValue:'[]',
         get() {
-            return JSON.parse(this.getDataValue('methods')||'null')||[]
+            return JSON.parse(this.getDataValue('tags')||'[]')||[]
+        },
+        set(value){
+            this.setDataValue('tags',JSON.stringify(value))
+        }
+    })
+    @Comment('标签')
+    tags:string[]
+    @Column({
+        type:DataTypes.TEXT,
+        defaultValue:'[]',
+        get() {
+            return JSON.parse(this.getDataValue('methods')||'[]')||[]
         },
         set(value){
             this.setDataValue('methods',JSON.stringify(value))

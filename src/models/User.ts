@@ -7,20 +7,28 @@ import {Category} from "@/models/Category";
 import {Comment} from "@/models/Comment";
 import {Role} from "@/models/Role";
 import {Menu} from "@/models/Menu";
+import {Link} from "@/models/Link";
 @Model
 @HasMany(()=>Tag)
 @HasMany(()=>Menu,{as:'routes'})
 @HasMany(()=>Article)
 @HasMany(()=>Category)
 @HasMany(()=>Comment)
-@BelongsTo(()=>User,{as:'creator'})
 @HasMany(()=>User)
+@HasMany(()=>Link,{as:'links'})
+@BelongsTo(()=>User,{as:'creator'})
 @BelongsToMany(()=>Role,{through:'userRole',as:'roles'})
 export class User extends BaseModel{
     id:number
-    @Column(DataTypes.TEXT)
+    @Column({
+        type:DataTypes.TEXT,
+        allowNull:false,
+    })
     @SC('用户名')
-    name:string
+    username:string
+    @Column(DataTypes.TEXT)
+    @SC('昵称')
+    nickname:string
     @Column(DataTypes.INTEGER)
     @SC('年龄')
     age:number

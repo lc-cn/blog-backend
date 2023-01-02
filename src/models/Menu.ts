@@ -2,13 +2,16 @@ import {BaseModel, BelongsTo, BelongsToMany, Column, Comment, HasMany, Model} fr
 import {DataTypes} from "sequelize";
 import {Api} from "@/models/Api";
 import {User} from "@/models/User";
+import {Role} from "@/models/Role";
 @Model
 @BelongsTo(()=>User,{as:'creator'})
 @BelongsTo(()=>Menu,{foreignKey:'pId'})
 @HasMany(()=>Menu,{as:'children'})
-@BelongsToMany(()=>Api,{through:'routePermissions',as:'apis'})
+@BelongsToMany(()=>Role,{through:'roleMenus',as:'roles'})
+@BelongsToMany(()=>Api,{through:'menuApis',as:'apis'})
 export class Menu extends BaseModel{
     id:number
+    pId:number|null
     @Column(DataTypes.TEXT)
     @Comment('菜单名称')
     name:string

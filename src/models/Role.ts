@@ -4,7 +4,7 @@ import {DataTypes} from "sequelize";
 import {Menu} from "@/models/Menu";
 @Model
 @BelongsToMany(()=>User,{through:'userRole',as:'users'})
-@BelongsToMany(()=>Menu,{through:'roleMenus',as:'routes'})
+@BelongsToMany(()=>Menu,{through:'roleMenus',as:'menus'})
 @BelongsTo(()=>User,{as:'creator'})
 export class Role extends BaseModel{
     id:number

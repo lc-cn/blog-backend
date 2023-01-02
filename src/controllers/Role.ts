@@ -1,7 +1,7 @@
 import {Controller, Params,Param, Request, RequestMapping, BaseController, Body} from "koa-msc";
 import {RoleService} from "@/services/Role";
 import {Role} from "@/models/Role";
-import {Pagination, success} from "@/utils";
+import {AppErr, Pagination, success} from "@/utils";
 
 @Controller('/role')
 export class RoleController extends BaseController<RoleService>{
@@ -14,9 +14,25 @@ export class RoleController extends BaseController<RoleService>{
         return success(await this.service.pagination(condition,pagination.pageNum,pagination.pageSize))
     }
     @RequestMapping('/info',Request.get)
-    @Param('id',{type:"string",required:true})
+    @Param('id',{type: "string", required: true,pattern:/^\d+$/})
     async info({id}){
-        return success(await this.service.info({id:Number(id)}))
+        return success(await this.service.info({id:Number(id)},{
+            rejectOnEmpty:false,
+            include:[
+                {
+                    model:this.service.models.user,
+                    as:'users',
+                    attributes:['id','username'],
+                    through:{attributes:[]}
+                },
+                {
+                    model:this.service.models.menu,
+                    attributes:['id'],
+                    as:'menus',
+                    through:{attributes:[]}
+                }
+            ]
+        }))
     }
     @RequestMapping('/add',Request.post)
     @Body({
@@ -28,7 +44,7 @@ export class RoleController extends BaseController<RoleService>{
         return success(true,'添加角色成功')
     }
     @RequestMapping('/update',Request.post)
-    @Param('id',{required:true})
+    @Param('id',{type: "string", required: true,pattern:/^\d+$/})
     @Body({
         name:{type:"string",required:true}
     })
@@ -37,21 +53,26 @@ export class RoleController extends BaseController<RoleService>{
         return success(true,'保存角色成功')
     }
     @RequestMapping('/bind',Request.post)
-    @Param('id',{type:"number"})
+    @Param('id',{type: "string", required: true,pattern:/^\d+$/})
     @Body({
         userIds:{type:"array",defaultField:{type:"number"}},
         routeIds:{type:"array",defaultField:{type:"number"}}
     })
-    async bindUser(condition:Pick<Role, 'id'>,{userIds=[],routeIds=[]}){
+    async bind(condition:Pick<Role, 'id'>,{userIds,menuIds}:{userIds?:number[],menuIds?:number[]}){
         const role=await this.service.info(condition)
-        const routes=await this.services.route.list({id:routeIds})
-        const users=await this.services.user.list({id:userIds})
-        await role['setMenus'](routes)
-        await role['setUsers'](users)
+        if(!userIds && !menuIds) return new AppErr('请至少配置一项',416)
+        if(menuIds){
+            const menus=await this.services.menu.list({id:menuIds})
+            await role['setMenus'](menus)
+        }
+        if(userIds){
+            const users=await this.services.user.list({id:userIds})
+            await role['setUsers'](users)
+        }
         return success(true,'绑定成功')
     }
     @RequestMapping('/delete',Request.delete)
-    @Param('id',{required:true})
+    @Param('id',{type: "string", required: true,pattern:/^\d+$/})
     async delete(condition:Pick<Role, 'id'>){
         await this.service.delete(condition)
         return success(true,'删除角色成功')

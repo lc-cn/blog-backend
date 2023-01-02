@@ -1,20 +1,39 @@
 import {Middleware} from "koa";
 import {App} from "koa-msc";
-import * as jwt from "koa-jwt";
+import * as koaJwt from "koa-jwt";
+const jwt = require('jsonwebtoken');
 import {AppErr} from "@/utils";
 export const auth=(app)=>{
-    return jwt({secret:app.envConfig.AUTHSECRET})
+    return koaJwt({secret:app.envConfig.AUTHSECRET})
         .unless({
             path:[
                 '/api/user/login',
                 '/api/user/register',
+                '/api/user/info',
+                '/api/article/list',
+                '/api/config/all',
                 /!^\/api\/.*/
             ]
         })
 }
-export const checkPermission=(app:App)=>{
+export const checkPermission=(app)=>{
     const middleware:Middleware=async (ctx, next)=>{
-        if(!ctx.state.user || !ctx.url.startsWith('/api') || ctx.url.match(/^\/api\/user\/(register|login)/)) return next()
+        if(!ctx.state.user || !ctx.url.startsWith('/api')){
+            if(ctx.url.match(/^\/api\/user\/(register|login)/)){
+                return next()
+            }else if(!ctx.state.user){
+                const {authorization=''}=ctx.request.headers
+                const [bearer,token='']=authorization.split(' ')
+                if(bearer==='Bearer' && token && token!=='undefined'){
+                    ctx.state.user=jwt.verify(token, app.envConfig.AUTHSECRET)
+                }else{
+                    ctx.state.user={
+                        id:2,
+                        username:'anonymous'
+                    }
+                }
+            }
+        }
         const roleModels=await app.model('role').findAll({
             attributes:['id'],
             include:[
@@ -31,23 +50,23 @@ export const checkPermission=(app:App)=>{
                 },
 
                 {
-                    model:app.model('route'),
+                    model:app.model('menu'),
                     attributes:['id'],
-                    as:'routes',
+                    as:'menus',
                     include:[
                         {
                             model:app.model('api'),
                             attributes:['id','methods','url'],
                             as:'apis',
                             through:{
-                                attributes:['apiId','routeId']
+                                attributes:['apiId','menuId']
                             }
                         },
                     ]
                 },
             ]
         })
-        const apis=roleModels.map(role=>role.toJSON().routes.map(route=>route.apis)).flat(Infinity)
+        const apis=roleModels.map(role=>role.toJSON().menus.map(menu=>menu.apis)).flat(Infinity)
         if(!apis.find(api=>{
             return ctx.url.startsWith(`/api/${api.url}`) && api.methods.includes(ctx.method.toUpperCase())
         })) throw new AppErr('权限不足',403)

@@ -2,15 +2,9 @@ import {BaseService, Service} from "koa-msc";
 import {User} from "@/models/User";
 @Service
 export class UserService extends BaseService<User>{
-    getUserList(condition){
-        return this.model.findAll({
-            attributes:['id','name','age','email'],
-            where:condition
-        })
-    }
-    override info(condition:{id?:number,name?:string}){
+    override info(condition:{id?:number,username?:string}){
         return this.model.findOne({
-            attributes:['id','name','age','email'],
+            attributes:['id','username','nickname','age','email'],
             where:condition,
             include:[
                 {
@@ -19,9 +13,9 @@ export class UserService extends BaseService<User>{
                     attributes:['id','name'],
                     include:[
                         {
-                            model:this.models.route,
+                            model:this.models.menu,
                             attributes:['id','pId','name','type','path','component','icon'],
-                            as:'routes',
+                            as:'menus',
                             through:{attributes:[]},
                             include:[
                                 {
@@ -41,14 +35,14 @@ export class UserService extends BaseService<User>{
                 },{
                     model:this.model,
                     as:'creator',
-                    attributes:['id','name','age','email']
+                    attributes:['id','username']
                 }
             ]
         })
     }
-    getInfoWithPwd(condition:{id?:number,name?:string}){
+    getInfoWithPwd(condition:{id?:number,username?:string}){
         return this.model.findOne({
-            attributes:['id','name','age','email','password'],
+            attributes:['id','username','age','email','password'],
             where:condition
         })
     }
