@@ -1,7 +1,7 @@
-import {Controller, Params,Param, Request, RequestMapping, BaseController, Body} from "koa-msc";
+import {Controller,Param, Request, RequestMapping, BaseController, Body} from "koa-msc";
 import {ApiService} from "@/services/Api";
 import {Api} from "@/models/Api";
-import {Pagination, success} from "@/utils";
+import { success} from "@/utils";
 
 @Controller('/api')
 export class ApiController extends BaseController<ApiService>{
@@ -11,11 +11,11 @@ export class ApiController extends BaseController<ApiService>{
         methods:{type:'array',defaultField:{type:"string"}},
         tags:{type:'array',defaultField:{type:"string"}}
     })
-    async getApiList(_,condition:Pick<Api, 'group'|'methods'|'tags'>){
-        return success(await this.service.list(condition))
+    async getApiList(pagination,condition:Pick<Api, 'group'|'methods'|'tags'>){
+        return success(await this.service.pagination(condition, pagination.pageNum, pagination.pageSize))
     }
     @RequestMapping('/info',Request.get)
-    @Param('id',{type: "string", required: true,pattern:/^\d+$/})
+    @Param('id',{type: "number"})
     async info({id}){
         return success(await this.service.info({id:Number(id)}))
     }
@@ -29,7 +29,7 @@ export class ApiController extends BaseController<ApiService>{
         return success(true,'添加接口成功')
     }
     @RequestMapping('/bindMenu',Request.post)
-    @Param('id',{type: "string", required: true,pattern:/^\d+$/})
+    @Param('id',{type: "number"})
     @Body({
         'ids':{type:"array",defaultField:{type:"number"}}
     })
@@ -40,7 +40,7 @@ export class ApiController extends BaseController<ApiService>{
         return success(true,'绑定成功')
     }
     @RequestMapping('/update',Request.put)
-    @Param('id',{type: "string", required: true,pattern:/^\d+$/})
+    @Param('id',{type: "number"})
     @Body({
         name:{type:"string",required:true}
     })
@@ -49,7 +49,7 @@ export class ApiController extends BaseController<ApiService>{
         return success(true,'修改接口成功')
     }
     @RequestMapping('/delete',Request.delete)
-    @Param('id',{type: "string", required: true,pattern:/^\d+$/})
+    @Param('id',{type: "number"})
     async delete(condition:Pick<Api, 'id'>){
         await this.service.delete(condition)
         return success(true,'删除接口成功')

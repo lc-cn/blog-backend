@@ -14,7 +14,7 @@ export class CommentController extends BaseController<CommentService>{
         return success(await this.service.pagination(condition,pagination.pageNum,pagination.pageSize))
     }
     @RequestMapping('/info',Request.get)
-    @Param('id',{type: "string", required: true,pattern:/^\d+$/})
+    @Param('id',{type: "number"})
     async info({id}){
         return success(await this.service.info({id:Number(id)}))
     }
@@ -30,7 +30,7 @@ export class CommentController extends BaseController<CommentService>{
         return success(true,'评论成功')
     }
     @RequestMapping('/update',Request.put)
-    @Param('id',{type: "string", required: true,pattern:/^\d+$/})
+    @Param('id',{type: "number"})
     @Body({
         name:{type:"string",required:true}
     })
@@ -39,7 +39,7 @@ export class CommentController extends BaseController<CommentService>{
         return success(true,'修改评论成功')
     }
     @RequestMapping('/delete',Request.delete)
-    @Param('id',{type: "string", required: true,pattern:/^\d+$/})
+    @Param('id',{type: "number"})
     async delete(condition:Pick<Comment, 'id'>){
         await this.service.delete(condition)
         return success(true,'删除评论成功')

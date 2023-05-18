@@ -8,7 +8,7 @@ import {Comment} from "@/models/Comment";
 @BelongsToMany(()=>Category,{through:'articleCategories',as:'categories'})
 @BelongsTo(()=>User,{as:'author'})
 @HasMany(()=>Comment,{as:'comments'})
-@BelongsToMany(()=>Tag,{through:'articleTags'})
+@BelongsToMany(()=>Tag,{through:'articleTags',as:'tags'})
 export class Article extends BaseModel{
     id:number
     @Column(DataTypes.TEXT)

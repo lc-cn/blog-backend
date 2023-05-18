@@ -40,7 +40,7 @@ export class ArticleController extends BaseController<ArticleService> {
     }
 
     @RequestMapping('/info', Request.get)
-    @Param('id', {type: "string", required: true,pattern:/^\d+$/})
+    @Param('id', {type: "number"})
     async info({id}) {
         return success(await this.service.info({id: Number(id)}))
     }
@@ -67,7 +67,7 @@ export class ArticleController extends BaseController<ArticleService> {
     }
 
     @RequestMapping('/update', Request.put)
-    @Param('id', {type: "string", required: true,pattern:/^\d+$/})
+    @Param('id', {type: "number"})
     @Body({
         title: {type: "string", required: true},
         content: {type: "string", required: true},
@@ -89,7 +89,7 @@ export class ArticleController extends BaseController<ArticleService> {
     }
 
     @RequestMapping('/delete', Request.delete)
-    @Param('id', {type: "string", required: true,pattern:/^\d+$/})
+    @Param('id', {type: "number"})
     async delete(condition: Pick<Article, 'id'>) {
         await this.service.delete(condition)
         return success(true, '删除文章成功')

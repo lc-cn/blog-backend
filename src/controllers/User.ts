@@ -12,8 +12,10 @@ export class UserController extends BaseController<UserService>{
     @RequestMapping('/list',[Request.get,Request.post])
     @Param('pageSize',{type:"number"})
     @Param('pageNum',{type:'number'})
-    async getUserList(condition){
-        return success(await this.service.pagination(condition,1,10))
+    async getUserList({pageNum,pageSize}){
+        return success(await this.service.pagination(undefined,pageNum,pageSize,undefined,{
+            attributes:['id','username','nickname','email']
+        }))
     }
     @RequestMapping('/login',Request.post)
     @Body({
@@ -32,19 +34,19 @@ export class UserController extends BaseController<UserService>{
         return success(token,'登录成功')
     }
     @RequestMapping('/info',Request.get)
-    @Param('id',{type: "string",pattern:/^\d+$/})
+    @Param('id',{type: "number"})
     async info({id},_,ctx){
         if(!id) return success(await this.service.info({username:ctx.state.user.username}))
         return success(await this.service.info({id:Number(id)}))
     }
-    @RequestMapping('/bindRole',Request.post)
-    @Param('id',{type: "string", required: true,pattern:/^\d+$/})
+    @RequestMapping('/bind',Request.post)
+    @Param('id',{type: "number"})
     @Body({
-        'ids':{type:"array",defaultField:{type:"number"}}
+        'roleIds':{type:"array",defaultField:{type:"number"}}
     })
-    async bindRole({id},{ids}){
-        const user=this.service.info({id})
-        const roles=await this.services.role.list({id:ids})
+    async bindRole({id},{roleIds}){
+        const user=await this.service.info({id})
+        const roles=await this.services.role.list({id:roleIds})
         await user['setRoles'](roles)
         return success(true,'绑定成功')
     }
@@ -93,7 +95,7 @@ export class UserController extends BaseController<UserService>{
         return success(true,'修改成功')
     }
     @RequestMapping('/add',Request.post)
-    @Param('id',{type: "string", required: true,pattern:/^\d+$/})
+    @Param('id',{type: "number"})
     @Body({
         username:{type:"string"},
         password:{type:"string",min:8},
@@ -106,7 +108,7 @@ export class UserController extends BaseController<UserService>{
         return success(true,'修改用户成功')
     }
     @RequestMapping('/delete',Request.delete)
-    @Param('id',{type: "string", required: true,pattern:/^\d+$/})
+    @Param('id',{type: "number"})
     async delete(condition:Pick<User, 'id'>){
         await this.service.delete(condition)
         return success(true,'删除用户成功')

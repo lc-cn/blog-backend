@@ -1,20 +1,16 @@
 import {BaseController, Body, Controller, Param, Params, Request, RequestMapping,} from "koa-msc";
 import {MenuService} from "@/services/Menu";
 import {Menu} from "@/models/Menu";
-import {AppErr, Pagination, success} from "@/utils";
-import {Role} from "@/models/Role";
+import {AppErr, Pagination, success, toTree} from "@/utils";
 
 @Controller('/menu')
 export class MenuController extends BaseController<MenuService> {
     @RequestMapping('/tree',[Request.get])
-    @Param('pId',{type: "string",pattern:/^\d+$/})
-    async getAllCategory({pId}:Pick<Menu, 'pId'>,_,ctx){
-        return success(await this.service.list({pId},{
-            include:{
-                model:this.service.model,
-                as:'children'
-            }
-        }))
+    @Param('pId',{type: "number"})
+    async getMenuTree({pId=null}:Pick<Menu, 'pId'>,_,ctx){
+        const menus=await this.service.list({pId:pId})
+        if(!menus.length) return success([])
+        return success(await Promise.all(menus.map(async item=>toTree(item))))
     }
     @RequestMapping('/list', [Request.post])
     @Params({
@@ -26,7 +22,7 @@ export class MenuController extends BaseController<MenuService> {
     }
 
     @RequestMapping('/info', Request.get)
-    @Param('id', {type: "string", required: true,pattern:/^\d+$/})
+    @Param('id', {type: "number"})
     async info({id}) {
         return success(await this.service.info({id: Number(id)},{
             rejectOnEmpty:false,
@@ -53,12 +49,13 @@ export class MenuController extends BaseController<MenuService> {
     })
     async add(_, routeInfo: Omit<Menu, 'id'>, ctx) {
         routeInfo['creatorId'] = ctx.state.user.id
+        routeInfo['menuId']=routeInfo.pId
         await this.service.add(routeInfo)
         return success(true,'添加菜单成功')
     }
 
     @RequestMapping('/bind', Request.post)
-    @Param('id',{type: "string", required: true,pattern:/^\d+$/})
+    @Param('id',{type: "number"})
     @Body({
         apiIds: {type: "array", defaultField: {type: "number"}},
         roleIds: {type: "array", defaultField: {type: "number"}}
@@ -72,29 +69,22 @@ export class MenuController extends BaseController<MenuService> {
         }
         if(roleIds){
             const roles=await this.services.role.list({id:roleIds})
-            await menu['setUsers'](roles)
+            await menu['setRoles'](roles)
         }
         return success(true,'绑定成功')
     }
     @RequestMapping('/update',Request.put)
-    @Param('id',{type: "string", required: true,pattern:/^\d+$/})
+    @Param('id',{type: "number"})
     @Body({
         name: {type: "string", required: true}
     })
     async update(condition:Pick<Menu, 'id'>,menuInfo:Partial<Omit<Menu, 'id'>>){
+        menuInfo['menuId']=menuInfo.pId
         await this.service.update(condition,menuInfo)
         return success(true,'修改友链成功')
     }
-    async bindUser(condition:Pick<Menu, 'id'>,{apiIds = [], roleIds = []}) {
-        const route = await this.service.info(condition)
-        const roles = await this.services.route.list({id: roleIds})
-        const apis = await this.services.api.list({id: apiIds})
-        await route['setRoles'](roles)
-        await route['setApis'](apis)
-        return success(true,'绑定成功')
-    }
     @RequestMapping('/delete',Request.delete)
-    @Param('id',{type: "string", required: true,pattern:/^\d+$/})
+    @Param('id',{type: "number"})
     async delete(condition:Pick<Menu, 'id'>){
         await this.service.delete(condition)
         return success(true,'删除菜单成功')

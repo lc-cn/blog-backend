@@ -4,7 +4,7 @@ import {DataTypes} from "sequelize";
 import {Article} from "@/models/Article";
 @Model
 @BelongsTo(()=>User,{as:'creator'})
-@BelongsToMany(()=>Article,{through:'articleTags'})
+@BelongsToMany(()=>Article,{through:'articlesTags',as:'articles'})
 export class Tag extends BaseModel{
     id:number
     @Column(DataTypes.TEXT)

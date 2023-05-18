@@ -45,4 +45,4 @@ app.on('ready', async () => {
 app.use(errorHandler)
     .use(auth(app))
     .use(checkPermission(app))
-app.start(8080)
+app.start(8900)

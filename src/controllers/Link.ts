@@ -14,7 +14,7 @@ export class LinkController extends BaseController<LinkService>{
         return success(await this.service.pagination(condition,pagination.pageNum,pagination.pageSize))
     }
     @RequestMapping('/info',Request.get)
-    @Param('id',{type: "string", required: true,pattern:/^\d+$/})
+    @Param('id',{type: "number"})
     async info({id}){
         return success(await this.service.info({id:Number(id)}))
     }
@@ -31,7 +31,7 @@ export class LinkController extends BaseController<LinkService>{
         return success(true,'添加友链成功')
     }
     @RequestMapping('/update',Request.put)
-    @Param('id',{type: "string", required: true,pattern:/^\d+$/})
+    @Param('id',{type: "number"})
     @Body({
         icon:{type:"string"},
         name:{type:"string"},
@@ -43,7 +43,7 @@ export class LinkController extends BaseController<LinkService>{
         return success(true,'修改友链成功')
     }
     @RequestMapping('/delete',Request.delete)
-    @Param('id',{type: "string", required: true,pattern:/^\d+$/})
+    @Param('id',{type: "number"})
     async delete(condition:Pick<Link, 'id'>){
         await this.service.delete(condition)
         return success(true,'删除友链成功')

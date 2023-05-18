@@ -1,5 +1,4 @@
 import {Middleware} from "koa";
-import {App} from "koa-msc";
 import * as koaJwt from "koa-jwt";
 const jwt = require('jsonwebtoken');
 import {AppErr} from "@/utils";
