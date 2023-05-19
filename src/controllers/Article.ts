@@ -1,7 +1,8 @@
 import {Controller, Params, Param, Request, RequestMapping, BaseController, Body} from "koa-msc";
 import {ArticleService} from "@/services/Article";
 import {Article} from "@/models/Article";
-import {Pagination, success} from "@/utils";
+import {Pagination, success, toTree} from "@/utils";
+import {Model} from "sequelize";
 
 @Controller('/article')
 export class ArticleController extends BaseController<ArticleService> {
@@ -42,7 +43,52 @@ export class ArticleController extends BaseController<ArticleService> {
     @RequestMapping('/info', Request.get)
     @Param('id', {type: "number"})
     async info({id}) {
-        return success(await this.service.info({id: Number(id)}))
+        const article = await this.service.info({id: Number(id)}, {
+            rejectOnEmpty: false,
+            include: [
+                {
+                    model: this.service.models.category,
+                    as: 'categories',
+                    through:{
+                        attributes:[]
+                    }
+                },
+                {
+                    model: this.service.models.tag,
+                    as: 'tags',
+                    through:{
+                        attributes:[]
+                    }
+                },
+                {
+                    model: this.service.models.user,
+                    as: 'author',
+                    attributes:['id','username','nickname','email'],
+                }
+            ]
+        })
+        const comments:Model<Comment,Comment>[] = await article['getComments']({
+            where: {pId:null},
+            include: [
+                {
+                    model: this.service.models.user,
+                    as:'creator',
+                    attributes:['id','username','nickname','email'],
+                }
+            ]
+        })
+        return success({
+            ...article.toJSON(),
+            comments: await Promise.all(comments.map(comment => toTree(comment,'getReplies','replies',{
+                include: [
+                    {
+                        model: this.service.models.user,
+                        as:'creator',
+                        attributes:['id','username','nickname','email'],
+                    }
+                ]
+            })))
+        })
     }
 
     @RequestMapping('/add', Request.post)

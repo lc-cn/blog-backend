@@ -1,17 +1,53 @@
-import {App} from "koa-msc";
-import {resolve} from 'path'
+import {App, BaseService} from "koa-msc";
+import {ModelStatic} from 'sequelize'
 import {config} from "dotenv";
 import {auth, errorHandler, checkPermission} from "@/middlewares";
-
+import {Article} from "@/models/Article";
+import {Api} from "@/models/Api";
+import {Category} from "@/models/Category";
+import {Config} from "@/models/Config";
+import {Link} from "@/models/Link";
+import {Menu} from "@/models/Menu";
+import {Role} from "@/models/Role";
+import {Tag} from "@/models/Tag";
+import {User} from "@/models/User";
+import {Model} from "sequelize";
+declare module "koa-msc" {
+    namespace App {
+        interface Services{
+            api:BaseService<Api>
+            article:BaseService<Article>
+            category:BaseService<Category>
+            config:BaseService<Config>
+            link:BaseService<Link>
+            menu:BaseService<Menu>
+            role:BaseService<Role>
+            tag:BaseService<Tag>
+            user:BaseService<User>
+        }
+        interface Models{
+            api:ModelStatic<Model<Api,Api>>
+            article:ModelStatic<Model<Article,Article>>
+            category:ModelStatic<Model<Category,Category>>
+            config:ModelStatic<Model<Config,Config>>
+            link:ModelStatic<Model<Link,Link>>
+            menu:ModelStatic<Model<Menu,Menu>>
+            role:ModelStatic<Model<Role,Role>>
+            tag:ModelStatic<Model<Tag,Tag>>
+            user:ModelStatic<Model<User,User>>
+        }
+    }
+}
 const {parsed: env} = config({path: '.env'})
 const app = new App({
     log_level: 'info',
-    controller_path: resolve(__dirname, 'controllers'),
-    service_path: resolve(__dirname, 'services'),
-    model_path: resolve(__dirname, 'models'),
+    controller_path: 'src/controllers',
+    service_path: 'src/services',
+    model_path: 'src/models',
     router: {
         prefix: '/api',
     },
+    transaction: true,
     sequelize: {
         host: env.HOST,
         database: env.DATABASE,
@@ -25,7 +61,7 @@ const app = new App({
 app.envConfig = env
 app.on('ready', async () => {
     for (const api of app.apis) {
-        const [model] = await app.model('api').findOrCreate({
+        const [model,isCreate] = await app.model('api').findOrCreate({
             where: {
                 url: api.path,
             },
@@ -35,6 +71,7 @@ app.on('ready', async () => {
                 body: api.body
             }
         })
+        if(!isCreate) return
         await model.update({
             methods: api.methods,
             query: api.query,

@@ -6,7 +6,7 @@ import {User} from "@/models/User";
 @BelongsTo(()=>Article)
 @BelongsTo(()=>User,{as:'creator'})
 @BelongsTo(()=>Comment,{foreignKey:'pId'})
-@HasMany(()=>Comment,{as:'children'})
+@HasMany(()=>Comment,{as:'replies'})
 export class Comment extends BaseModel{
     id:number
     @Column(DataTypes.TEXT)
