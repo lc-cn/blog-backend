@@ -3,7 +3,7 @@ import {ModelStatic} from 'sequelize'
 import {config} from "dotenv";
 import {auth, errorHandler, checkPermission} from "@/middlewares";
 import {Article} from "@/models/Article";
-import {Api} from "@/models/Api";
+import {Api, Api as ApiInfo} from "@/models/Api";
 import {Category} from "@/models/Category";
 import {Config} from "@/models/Config";
 import {Link} from "@/models/Link";
@@ -15,7 +15,7 @@ import {Model} from "sequelize";
 declare module "koa-msc" {
     namespace App {
         interface Services{
-            api:BaseService<Api>
+            api:BaseService<ApiInfo>
             article:BaseService<Article>
             category:BaseService<Category>
             config:BaseService<Config>
@@ -26,7 +26,7 @@ declare module "koa-msc" {
             user:BaseService<User>
         }
         interface Models{
-            api:ModelStatic<Model<Api,Api>>
+            api:ModelStatic<Model<ApiInfo,ApiInfo>>
             article:ModelStatic<Model<Article,Article>>
             category:ModelStatic<Model<Category,Category>>
             config:ModelStatic<Model<Config,Config>>
@@ -60,24 +60,32 @@ const app = new App({
 })
 app.envConfig = env
 app.on('ready', async () => {
-    for (const api of app.apis) {
+    app.apis.forEach(async (api:App.Api)=>{
         const [model,isCreate] = await app.model('api').findOrCreate({
             where: {
                 url: api.path,
             },
             defaults: {
+                name: api.name,
+                desc: api.desc,
+                group: api.group,
+                tags: api.tags,
                 methods: api.methods,
                 query: api.query,
                 body: api.body
             }
         })
-        if(!isCreate) return
+        if(isCreate) return
         await model.update({
+            name: api.name,
+            desc: api.desc,
+            group: api.group,
+            tags: api.tags,
             methods: api.methods,
             query: api.query,
             body: api.body
         })
-    }
+    })
 })
 app.use(errorHandler)
     .use(auth(app))

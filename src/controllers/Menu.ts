@@ -1,11 +1,13 @@
-import {BaseController, Body, Controller, Param, Params, Request, RequestMapping,} from "koa-msc";
+import {BaseController, Body, Controller, Describe, Param, Params, Request, RequestMapping, Tag,} from "koa-msc";
 import {MenuService} from "@/services/Menu";
 import {Menu} from "@/models/Menu";
 import {AppErr, Pagination, success, toTree} from "@/utils";
 
-@Controller('/menu')
+@Controller('/menu', '菜单管理')
 export class MenuController extends BaseController<MenuService> {
     @RequestMapping('/tree',[Request.get])
+    @Describe('获取菜单树')
+    @Tag('菜单','树形结构')
     @Param('pId',{type: "number"})
     async getMenuTree({pId=null}:Pick<Menu, 'pId'>,_,ctx){
         const menus=await this.service.list({pId:pId})
@@ -13,6 +15,8 @@ export class MenuController extends BaseController<MenuService> {
         return success(await Promise.all(menus.map(async item=>toTree(item))))
     }
     @RequestMapping('/list', [Request.post])
+    @Describe('获取菜单列表')
+    @Tag('菜单','列表')
     @Params({
         pageNum: {type: "number"},
         pageSize: {type: 'number'}
@@ -22,6 +26,8 @@ export class MenuController extends BaseController<MenuService> {
     }
 
     @RequestMapping('/info', Request.get)
+    @Describe('获取菜单详情')
+    @Tag('菜单','详情')
     @Param('id', {type: "number"})
     async info({id}) {
         return success(await this.service.info({id: Number(id)},{
@@ -44,6 +50,8 @@ export class MenuController extends BaseController<MenuService> {
     }
 
     @RequestMapping('/add', Request.post)
+    @Describe('添加菜单')
+    @Tag('菜单','添加')
     @Body({
         name: {type: "string", required: true}
     })
@@ -55,6 +63,8 @@ export class MenuController extends BaseController<MenuService> {
     }
 
     @RequestMapping('/bind', Request.post)
+    @Describe('绑定菜单')
+    @Tag('菜单','绑定')
     @Param('id',{type: "number"})
     @Body({
         apiIds: {type: "array", defaultField: {type: "number"}},
@@ -74,6 +84,8 @@ export class MenuController extends BaseController<MenuService> {
         return success(true,'绑定成功')
     }
     @RequestMapping('/update',Request.put)
+    @Describe('修改菜单')
+    @Tag('菜单','修改')
     @Param('id',{type: "number"})
     @Body({
         name: {type: "string", required: true}
@@ -84,6 +96,8 @@ export class MenuController extends BaseController<MenuService> {
         return success(true,'修改友链成功')
     }
     @RequestMapping('/delete',Request.delete)
+    @Describe('删除菜单')
+    @Tag('菜单','删除')
     @Param('id',{type: "number"})
     async delete(condition:Pick<Menu, 'id'>){
         await this.service.delete(condition)

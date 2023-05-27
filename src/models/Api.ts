@@ -6,27 +6,18 @@ import {Menu} from "@/models/Menu";
 @BelongsToMany(()=>Menu,{through:'menuApis',as:'menus'})
 export class Api extends BaseModel{
     id:number
+    @Column(DataTypes.STRING)
+    @Comment('接口名称')
+    name:string
     @Column(DataTypes.TEXT)
-    @Comment('请求地址')
-    url:string
+    @Comment('接口描述')
+    desc:string
     @Column(DataTypes.TEXT)
     @Comment('所属分组')
     group:string
     @Column(DataTypes.TEXT)
-    @Comment('接口描述')
-    desc:string
-    @Column({
-        type:DataTypes.TEXT,
-        defaultValue:'[]',
-        get() {
-            return JSON.parse(this.getDataValue('tags')||'[]')||[]
-        },
-        set(value){
-            this.setDataValue('tags',JSON.stringify(value))
-        }
-    })
-    @Comment('标签')
-    tags:string[]
+    @Comment('请求地址')
+    url:string
     @Column({
         type:DataTypes.TEXT,
         defaultValue:'[]',
@@ -39,6 +30,18 @@ export class Api extends BaseModel{
     })
     @Comment('请求方式:[GET,POST,PUT,DELETE]')
     methods:string[]
+    @Column({
+        type:DataTypes.TEXT,
+        defaultValue:'[]',
+        get() {
+            return JSON.parse(this.getDataValue('tags')||'[]')||[]
+        },
+        set(value){
+            this.setDataValue('tags',JSON.stringify(value))
+        }
+    })
+    @Comment('标签')
+    tags:string[]
     @Column({
         type:DataTypes.TEXT,
         defaultValue:"null",

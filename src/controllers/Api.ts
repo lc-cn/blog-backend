@@ -1,11 +1,13 @@
-import {Controller,Param, Request, RequestMapping, BaseController, Body} from "koa-msc";
+import {Controller, Param, Request, RequestMapping, BaseController, Body, Describe, Tag} from "koa-msc";
 import {ApiService} from "@/services/Api";
 import {Api} from "@/models/Api";
 import { success} from "@/utils";
 
-@Controller('/api')
+@Controller('/api','接口管理')
 export class ApiController extends BaseController<ApiService>{
     @RequestMapping('/list',[Request.post])
+    @Describe('获取接口列表')
+    @Tag('接口','列表')
     @Body({
         group:{type:"string"},
         methods:{type:'array',defaultField:{type:"string"}},
@@ -15,11 +17,15 @@ export class ApiController extends BaseController<ApiService>{
         return success(await this.service.pagination(condition, pagination.pageNum, pagination.pageSize))
     }
     @RequestMapping('/info',Request.get)
+    @Describe('获取接口详情')
+    @Tag('接口','详情')
     @Param('id',{type: "number"})
     async info({id}){
         return success(await this.service.info({id:Number(id)}))
     }
     @RequestMapping('/add',Request.post)
+    @Describe('添加接口')
+    @Tag('接口','添加')
     @Body({
         name:{type:"string",required:true}
     })
@@ -29,6 +35,8 @@ export class ApiController extends BaseController<ApiService>{
         return success(true,'添加接口成功')
     }
     @RequestMapping('/bindMenu',Request.post)
+    @Describe('绑定菜单')
+    @Tag('接口','绑定菜单')
     @Param('id',{type: "number"})
     @Body({
         'ids':{type:"array",defaultField:{type:"number"}}
@@ -40,6 +48,8 @@ export class ApiController extends BaseController<ApiService>{
         return success(true,'绑定成功')
     }
     @RequestMapping('/update',Request.put)
+    @Describe('修改接口')
+    @Tag('接口','修改')
     @Param('id',{type: "number"})
     @Body({
         name:{type:"string",required:true}
@@ -49,6 +59,8 @@ export class ApiController extends BaseController<ApiService>{
         return success(true,'修改接口成功')
     }
     @RequestMapping('/delete',Request.delete)
+    @Describe('删除接口')
+    @Tag('接口','删除')
     @Param('id',{type: "number"})
     async delete(condition:Pick<Api, 'id'>){
         await this.service.delete(condition)

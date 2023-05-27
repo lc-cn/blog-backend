@@ -1,12 +1,14 @@
-import {Controller, Params, Param, Request, RequestMapping, BaseController, Body} from "koa-msc";
+import {Controller, Params, Param, Request, RequestMapping, BaseController, Body, Describe, Tag} from "koa-msc";
 import {ArticleService} from "@/services/Article";
 import {Article} from "@/models/Article";
-import {Pagination, success, toTree} from "@/utils";
+import {error, Pagination, success, toTree} from "@/utils";
 import {Model} from "sequelize";
 
-@Controller('/article')
+@Controller('/article','文章管理')
 export class ArticleController extends BaseController<ArticleService> {
     @RequestMapping('/list', [Request.get, Request.post])
+    @Describe('获取文章列表')
+    @Tag('文章','列表')
     @Params({
         pageNum: {type: "number"},
         pageSize: {type: 'number'}
@@ -41,6 +43,8 @@ export class ArticleController extends BaseController<ArticleService> {
     }
 
     @RequestMapping('/info', Request.get)
+    @Describe('获取文章详情')
+    @Tag('文章','详情')
     @Param('id', {type: "number"})
     async info({id}) {
         const article = await this.service.info({id: Number(id)}, {
@@ -67,6 +71,7 @@ export class ArticleController extends BaseController<ArticleService> {
                 }
             ]
         })
+        if (!article) return error('文章不存在',404)
         const comments:Model<Comment,Comment>[] = await article['getComments']({
             where: {pId:null},
             include: [
@@ -92,6 +97,8 @@ export class ArticleController extends BaseController<ArticleService> {
     }
 
     @RequestMapping('/add', Request.post)
+    @Describe('添加文章')
+    @Tag('文章','添加')
     @Body({
         title: {type: "string", required: true},
         content: {type: "string", required: true},
@@ -113,6 +120,8 @@ export class ArticleController extends BaseController<ArticleService> {
     }
 
     @RequestMapping('/update', Request.put)
+    @Describe('编辑文章')
+    @Tag('文章','编辑')
     @Param('id', {type: "number"})
     @Body({
         title: {type: "string", required: true},
@@ -135,6 +144,8 @@ export class ArticleController extends BaseController<ArticleService> {
     }
 
     @RequestMapping('/delete', Request.delete)
+    @Describe('删除文章')
+    @Tag('文章','删除')
     @Param('id', {type: "number"})
     async delete(condition: Pick<Article, 'id'>) {
         await this.service.delete(condition)

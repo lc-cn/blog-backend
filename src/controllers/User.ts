@@ -1,4 +1,4 @@
-import {Controller, Param, Request, RequestMapping, BaseController, Body,} from "koa-msc";
+import {Controller, Param, Request, RequestMapping, BaseController, Body, Describe, Tag,} from "koa-msc";
 import * as crypto from "crypto";
 import {config} from "dotenv";
 import {UserService} from "@/services/User";
@@ -7,9 +7,11 @@ import * as jwt from "jsonwebtoken";
 import {User} from "@/models/User";
 
 const {parsed:env}=config({path:'.env'})
-@Controller('/user')
+@Controller('/user','用户管理')
 export class UserController extends BaseController<UserService>{
     @RequestMapping('/list',[Request.get,Request.post])
+    @Describe('获取用户列表')
+    @Tag('用户','列表')
     @Param('pageSize',{type:"number"})
     @Param('pageNum',{type:'number'})
     async getUserList({pageNum,pageSize}){
@@ -18,6 +20,8 @@ export class UserController extends BaseController<UserService>{
         }))
     }
     @RequestMapping('/login',Request.post)
+    @Describe('用户登录')
+    @Tag('用户','登录')
     @Body({
         username:{type:"string",required:true},
         password:{type:"string",required:true}
@@ -34,12 +38,16 @@ export class UserController extends BaseController<UserService>{
         return success(token,'登录成功')
     }
     @RequestMapping('/info',Request.get)
+    @Describe('获取用户详情')
+    @Tag('用户','详情')
     @Param('id',{type: "number"})
     async info({id},_,ctx){
         if(!id) return success(await this.service.info({username:ctx.state.user.username}))
         return success(await this.service.info({id:Number(id)}))
     }
     @RequestMapping('/bind',Request.post)
+    @Describe('绑定角色')
+    @Tag('用户','绑定')
     @Param('id',{type: "number"})
     @Body({
         'roleIds':{type:"array",defaultField:{type:"number"}}
@@ -51,6 +59,8 @@ export class UserController extends BaseController<UserService>{
         return success(true,'绑定成功')
     }
     @RequestMapping('/register',Request.post)
+    @Describe('用户注册')
+    @Tag('用户','注册')
     @Body({
         username:{type:"string",required:true},
         password:{type:"string",min:8,required:true},
@@ -66,6 +76,8 @@ export class UserController extends BaseController<UserService>{
         return success(user.toJSON(),'注册成功')
     }
     @RequestMapping('/add',Request.post)
+    @Describe('添加用户')
+    @Tag('用户','添加')
     @Body({
         username:{type:"string",required:true},
         password:{type:"string",min:8,required:true},
@@ -82,6 +94,8 @@ export class UserController extends BaseController<UserService>{
         return success(user.toJSON(),'添加用户成功')
     }
     @RequestMapping('/modify',Request.post)
+    @Describe('根据用户名更改用户信息')
+    @Tag('用户','修改')
     @Body({
         username:{type:"string"},
         password:{type:"string",min:8},
@@ -94,7 +108,9 @@ export class UserController extends BaseController<UserService>{
         await user.update(userInfo)
         return success(true,'修改成功')
     }
-    @RequestMapping('/add',Request.post)
+    @RequestMapping('/update',Request.post)
+    @Describe('根据id更改用户信息')
+    @Tag('用户','修改')
     @Param('id',{type: "number"})
     @Body({
         username:{type:"string"},
@@ -108,6 +124,8 @@ export class UserController extends BaseController<UserService>{
         return success(true,'修改用户成功')
     }
     @RequestMapping('/delete',Request.delete)
+    @Describe('删除用户')
+    @Tag('用户','删除')
     @Param('id',{type: "number"})
     async delete(condition:Pick<User, 'id'>){
         await this.service.delete(condition)

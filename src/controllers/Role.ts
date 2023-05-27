@@ -1,11 +1,13 @@
-import {Controller, Params,Param, Request, RequestMapping, BaseController, Body} from "koa-msc";
+import {Controller, Params, Param, Request, RequestMapping, BaseController, Body, Describe, Tag} from "koa-msc";
 import {RoleService} from "@/services/Role";
 import {Role} from "@/models/Role";
 import {AppErr, Pagination, success} from "@/utils";
 
-@Controller('/role')
+@Controller('/role','角色管理')
 export class RoleController extends BaseController<RoleService>{
     @RequestMapping('/list',[Request.get,Request.post])
+    @Describe('获取角色列表')
+    @Tag('角色','列表')
     @Params({
         pageNum:{type:"number"},
         pageSize:{type:'number'}
@@ -14,6 +16,8 @@ export class RoleController extends BaseController<RoleService>{
         return success(await this.service.pagination(condition,pagination.pageNum,pagination.pageSize))
     }
     @RequestMapping('/info',Request.get)
+    @Describe('获取角色详情')
+    @Tag('角色','详情')
     @Param('id',{type: "number"})
     async info({id}){
         return success(await this.service.info({id:Number(id)},{
@@ -35,6 +39,8 @@ export class RoleController extends BaseController<RoleService>{
         }))
     }
     @RequestMapping('/add',Request.post)
+    @Describe('添加角色')
+    @Tag('角色','添加')
     @Body({
         name:{type:"string",required:true}
     })
@@ -44,6 +50,8 @@ export class RoleController extends BaseController<RoleService>{
         return success(true,'添加角色成功')
     }
     @RequestMapping('/update',Request.post)
+    @Describe('保存角色')
+    @Tag('角色','保存')
     @Param('id',{type: "number"})
     @Body({
         name:{type:"string",required:true}
@@ -53,6 +61,8 @@ export class RoleController extends BaseController<RoleService>{
         return success(true,'保存角色成功')
     }
     @RequestMapping('/bind',Request.post)
+    @Describe('绑定角色权限')
+    @Tag('角色','绑定权限')
     @Param('id',{type: "number"})
     @Body({
         userIds:{type:"array",defaultField:{type:"number"}},
@@ -72,6 +82,8 @@ export class RoleController extends BaseController<RoleService>{
         return success(true,'绑定成功')
     }
     @RequestMapping('/delete',Request.delete)
+    @Describe('删除角色')
+    @Tag('角色','删除')
     @Param('id',{type: "number"})
     async delete(condition:Pick<Role, 'id'>){
         await this.service.delete(condition)
